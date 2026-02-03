@@ -1,14 +1,24 @@
 const dotenv = require("dotenv");
 const path = require("path");
+const fs = require("fs");
 
-// Only load .env file in development
+// Load .env from project root or src folder when not in production
 if (process.env.NODE_ENV !== "production") {
-  dotenv.config({ path: path.join(__dirname, "../.env") });
+  const rootEnv = path.join(__dirname, "..", ".env");
+  const srcEnv = path.join(__dirname, ".env");
+  if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  } else if (fs.existsSync(srcEnv)) {
+    dotenv.config({ path: srcEnv });
+  } else {
+    dotenv.config();
+  }
 }
 
-// Check if required environment variables are set
-if (!process.env.MONGO_URI) {
-  console.error("ERROR: MONGO_URI environment variable is not set!");
+// Accept either MONGO_URI or MONGODB_URI for compatibility
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error("ERROR: MONGO_URI (or MONGODB_URI) environment variable is not set!");
   process.exit(1);
 }
 
